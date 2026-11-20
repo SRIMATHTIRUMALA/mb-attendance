@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mb_solar_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - TIMEZONE=Asia/Kolkata
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/mb_solar_hub
+      - SUPABASE_URL=https://hpfqqbuaozdgpsdvylrh.supabase.co
+      - SUPABASE_JWT_SECRET=mb-solar-hub-attendance-jwt-secret-key-32chars
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+      - SIR_EMAIL=management@mbsolarhub.com
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mb_solar_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:17-alpine
+    container_name: mb_solar_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=mb_solar_hub
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
